@@ -1,0 +1,231 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body, html {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #0c0602;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Cinzel", "Georgia", serif;
+  color: #f7e7ce;
+}
+
+#kelir-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  display: block;
+  cursor: grab;
+}
+
+#kelir-canvas:active {
+  cursor: grabbing;
+}
+
+#ui-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 24px 32px;
+  transition: opacity 0.3s ease;
+}
+
+#ui-overlay.minimized .hide-on-minimize {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+}
+
+.interactive-btn, button, input {
+  pointer-events: auto;
+}
+
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.brand-title h1 {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #ffd680;
+  text-shadow: 0 2px 10px rgba(255, 200, 80, 0.4);
+}
+
+.brand-title .subtitle {
+  font-size: 13px;
+  letter-spacing: 1px;
+  color: #d4af37;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.top-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-gold {
+  background: rgba(35, 20, 10, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  color: #fff3db;
+  padding: 10px 18px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.btn-gold:hover {
+  background: rgba(65, 38, 18, 0.85);
+  border-color: #ffd680;
+  box-shadow: 0 0 16px rgba(255, 214, 128, 0.4);
+  transform: translateY(-2px);
+}
+
+.btn-gold.active {
+  background: linear-gradient(135deg, #a66a1a, #e6b333);
+  color: #1a0f05;
+  border-color: #fff;
+  box-shadow: 0 0 20px rgba(255, 200, 80, 0.6);
+}
+
+.sidebar-guide {
+  width: 310px;
+  background: rgba(22, 12, 6, 0.82);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+}
+
+.guide-header {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffd680;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.25);
+  padding-bottom: 8px;
+}
+
+.guide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.guide-item {
+  display: flex;
+  gap: 10px;
+}
+
+.guide-item .bullet {
+  color: #d4af37;
+  font-weight: bold;
+}
+
+.guide-item strong {
+  color: #ffebb8;
+}
+
+#pip-container {
+  position: absolute;
+  top: 90px;
+  right: 32px;
+  width: 180px;
+  height: 135px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid rgba(212, 175, 55, 0.6);
+  pointer-events: auto;
+  background: #000;
+}
+
+#pip-container.hidden {
+  display: none;
+}
+
+#pip-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+#webcam-video {
+  display: none;
+}
+
+.bottom-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  pointer-events: auto;
+}
+
+.shortcut-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.key-pill {
+  background: rgba(30, 16, 8, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: #ecd9b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(6px);
+}
+
+.key-pill kbd {
+  background: #3e2411;
+  border: 1px solid #73481e;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: monospace;
+  font-weight: bold;
+  color: #ffd680;
+}
+
+@media (max-width: 768px) {
+  .sidebar-guide { display: none; }
+  .brand-title h1 { font-size: 18px; }
+  #pip-container { width: 120px; height: 90px; top: 70px; right: 16px; }
+}

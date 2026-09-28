@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wayang Digital Indonesia - Pentas Dalang Virtual</title>
+  <link rel="stylesheet" href="styles.css">
+  
+  <!-- MediaPipe Hands & Camera Utils CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <!-- Layar Kelir Utama -->
+  <canvas id="kelir-canvas"></canvas>
+
+  <!-- Video Webcam (Hidden Stream) -->
+  <video id="webcam-video" playsinline></video>
+
+  <!-- Picture-in-Picture Webcam Preview -->
+  <div id="pip-container" class="hidden">
+    <canvas id="pip-canvas" width="180" height="135"></canvas>
+  </div>
+
+  <!-- UI Overlay -->
+  <div id="ui-overlay">
+    <header class="header-bar hide-on-minimize">
+      <div class="brand-title">
+        <h1>WAYANG DIGITAL INDONESIA</h1>
+        <span class="subtitle">Simulasi Interaktif Seni Pedalangan Nusantara</span>
+      </div>
+
+      <div class="top-actions">
+        <button id="btn-webcam" class="btn-gold interactive-btn">
+          <span class="icon">📷</span> Nyalakan Kamera
+        </button>
+        <button id="btn-bgm" class="btn-gold interactive-btn">
+          <span class="icon">🎵</span> Putar Gamelan
+        </button>
+        <button id="btn-demo" class="btn-gold interactive-btn">
+          <span class="icon">▶️</span> Demo Otomatis
+        </button>
+        <button id="btn-hide-ui" class="btn-gold interactive-btn">
+          Sembunyikan UI
+        </button>
+      </div>
+    </header>
+
+    <aside class="sidebar-guide hide-on-minimize">
+      <div class="guide-header">
+        <span>📖</span> Panduan Dalang Digital
+      </div>
+      <div class="guide-list">
+        <div class="guide-item">
+          <span class="bullet">✦</span>
+          <div><strong>Telapak Tangan (Palm):</strong> Mengendalikan posisi <em>gapit</em> (badan wayang).</div>
+        </div>
+        <div class="guide-item">
+          <span class="bullet">✦</span>
+          <div><strong>Ibu Jari & Telunjuk:</strong> Menggerakkan <em>tuding</em> (artikulasi siku dan tangan).</div>
+        </div>
+        <div class="guide-item">
+          <span class="bullet">✦</span>
+          <div><strong>Kemiringan Tangan:</strong> Mengatur sudut condong tubuh wayang.</div>
+        </div>
+        <div class="guide-item">
+          <span class="bullet">✦</span>
+          <div><strong>Jarak ke Kamera (Z-Depth):</strong> Mendekat/menjauhkan wayang dari kelir.</div>
+        </div>
+        <div class="guide-item">
+          <span class="bullet">✦</span>
+          <div><strong>Jari Kelingking Tegak:</strong> Memantik animasi tari <em>kiprahan</em>.</div>
+        </div>
+        <div class="guide-item">
+          <span class="bullet">✦</span>
+          <div><strong>Fallback Mouse / Touch:</strong> Klik dan seret wayang, scroll wheel untuk kedalaman.</div>
+        </div>
+      </div>
+    </aside>
+
+    <footer class="bottom-bar">
+      <div class="shortcut-pills">
+        <button id="btn-dance" class="key-pill interactive-btn">
+          <kbd>D</kbd> Joget / Kiprahan
+        </button>
+        <button id="btn-flip" class="key-pill interactive-btn">
+          <kbd>F</kbd> Balik Arah (Flip)
+        </button>
+        <div class="key-pill"><kbd>C</kbd> / <kbd>Space</kbd> Ketukan Cempala</div>
+        <div class="key-pill"><kbd>V</kbd> Toggle Kamera</div>
+        <div class="key-pill"><kbd>M</kbd> Toggle Gamelan</div>
+        <div class="key-pill"><kbd>P</kbd> Demo Mode</div>
+        <div class="key-pill"><kbd>H</kbd> Sembunyikan UI</div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Script Modules -->
+  <script src="js/audio.js"></script>
+  <script src="js/rig.js"></script>     <!-- File rig gambar yang baru dibuat -->
+  <script src="js/kelir.js"></script>
+  <script src="js/tracker.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
