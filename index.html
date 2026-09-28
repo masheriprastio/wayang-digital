@@ -1,107 +1,97 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Wayang Digital Indonesia - Pentas Dalang Virtual</title>
-  <link rel="stylesheet" href="styles.css">
-  
-  <!-- MediaPipe Hands & Camera Utils CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
-</head>
-<body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wayang Kulit — Hand Puppetry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="stage" aria-label="Wayang kulit stage"></canvas>
+    <video id="video" playsinline muted></video>
 
-  <!-- Layar Kelir Utama -->
-  <canvas id="kelir-canvas"></canvas>
-
-  <!-- Video Webcam (Hidden Stream) -->
-  <video id="webcam-video" playsinline></video>
-
-  <!-- Picture-in-Picture Webcam Preview -->
-  <div id="pip-container" class="hidden">
-    <canvas id="pip-canvas" width="180" height="135"></canvas>
-  </div>
-
-  <!-- UI Overlay -->
-  <div id="ui-overlay">
-    <header class="header-bar hide-on-minimize">
-      <div class="brand-title">
-        <h1>WAYANG DIGITAL INDONESIA</h1>
-        <span class="subtitle">Simulasi Interaktif Seni Pedalangan Nusantara</span>
+    <section id="intro" class="panel intro">
+      <p class="eyebrow">Wayang Kulit</p>
+      <h1>Two puppets,<br />one in each hand</h1>
+      <p class="lede">Play two leather shadow puppets on the lamp-lit kelir. Your webcam tracks both hands, just as a dalang holds the sticks.</p>
+      <ul class="howto">
+        <li><span class="k">Left &amp; right hand</span><span>Each hand holds one character: the left hand plays the left puppet, the right hand the right one.</span></li>
+        <li><span class="k">Palm</span><span>The body stick (gapit). The puppet follows it.</span></li>
+        <li><span class="k">Thumb &amp; index</span><span>That puppet's two arm rods (tuding). Spread, raise or pinch them.</span></li>
+        <li><span class="k">Tilt hand</span><span>The puppet leans with you.</span></li>
+        <li><span class="k">Closer to camera</span><span>Lifts that puppet off the screen, so its shadow grows and softens.</span></li>
+        <li><span class="k">Little finger</span><span>Show only your pinky: that puppet performs its kiprahan, a signature dance on the gamelan beat.</span></li>
+      </ul>
+      <div class="actions">
+        <button id="start-camera" class="btn primary">Start camera</button>
+        <button id="use-mouse" class="btn">Use mouse</button>
       </div>
+      <p id="intro-status" class="status-line" role="status"></p>
+    </section>
 
-      <div class="top-actions">
-        <button id="btn-webcam" class="btn-gold interactive-btn">
-          <span class="icon">📷</span> Nyalakan Kamera
-        </button>
-        <button id="btn-bgm" class="btn-gold interactive-btn">
-          <span class="icon">🎵</span> Putar Gamelan
-        </button>
-        <button id="btn-demo" class="btn-gold interactive-btn">
-          <span class="icon">▶️</span> Demo Otomatis
-        </button>
-        <button id="btn-hide-ui" class="btn-gold interactive-btn">
-          Sembunyikan UI
-        </button>
-      </div>
-    </header>
+    <div id="hud" class="hud">
+      <div class="pill" id="status"><span class="dot"></span><span id="status-text">Demo</span></div>
+      <p class="keys"><kbd>D</kbd> dance <kbd>F</kbd><kbd>G</kbd> turn left / right puppet <kbd>H</kbd> hide <kbd>C</kbd> recalibrate depth <kbd>V</kbd> camera <kbd>P</kbd> pop out camera <kbd>M</kbd> music</p>
+    </div>
 
-    <aside class="sidebar-guide hide-on-minimize">
-      <div class="guide-header">
-        <span>📖</span> Panduan Dalang Digital
-      </div>
-      <div class="guide-list">
-        <div class="guide-item">
-          <span class="bullet">✦</span>
-          <div><strong>Telapak Tangan (Palm):</strong> Mengendalikan posisi <em>gapit</em> (badan wayang).</div>
-        </div>
-        <div class="guide-item">
-          <span class="bullet">✦</span>
-          <div><strong>Ibu Jari & Telunjuk:</strong> Menggerakkan <em>tuding</em> (artikulasi siku dan tangan).</div>
-        </div>
-        <div class="guide-item">
-          <span class="bullet">✦</span>
-          <div><strong>Kemiringan Tangan:</strong> Mengatur sudut condong tubuh wayang.</div>
-        </div>
-        <div class="guide-item">
-          <span class="bullet">✦</span>
-          <div><strong>Jarak ke Kamera (Z-Depth):</strong> Mendekat/menjauhkan wayang dari kelir.</div>
-        </div>
-        <div class="guide-item">
-          <span class="bullet">✦</span>
-          <div><strong>Jari Kelingking Tegak:</strong> Memantik animasi tari <em>kiprahan</em>.</div>
-        </div>
-        <div class="guide-item">
-          <span class="bullet">✦</span>
-          <div><strong>Fallback Mouse / Touch:</strong> Klik dan seret wayang, scroll wheel untuk kedalaman.</div>
-        </div>
-      </div>
+    <button id="sound-toggle" class="icon-btn sound-btn" aria-label="Mute music" aria-pressed="false">
+      <svg class="on" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4Zm-2.5-8.8v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6Z"/></svg>
+      <svg class="off" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M4 9v6h4l5 4V5L8 9H4Zm12.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4-2.7-2.7Z" transform="translate(2 0)"/></svg>
+    </button>
+    <button id="settings-toggle" class="icon-btn" aria-label="Settings" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.3 7.3 0 0 0-1.7-1L15 3h-4l-.4 2.7a7.3 7.3 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.3 7.3 0 0 0 1.7 1L11 21h4l.4-2.7a7.3 7.3 0 0 0 1.7-1l2.5 1 2-3.5ZM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z" transform="translate(-1 0)"/></svg>
+    </button>
+
+    <aside id="settings" class="panel settings" hidden>
+      <h2>Settings</h2>
+      <label>Characters
+        <select id="opt-characters">
+          <option value="two">Two puppets, one per hand</option>
+          <option value="one">One puppet</option>
+        </select>
+      </label>
+      <label>Arm-rod fingers
+        <select id="opt-fingers">
+          <option value="thumb-index">Thumb + index</option>
+          <option value="thumb-pinky">Thumb + pinky (arms spread wider)</option>
+          <option value="index-pinky">Index + pinky</option>
+        </select>
+      </label>
+      <label id="bodyhand-row" hidden>Body hand (one puppet, two hands)
+        <select id="opt-bodyhand">
+          <option value="right">Right hand holds the gapit</option>
+          <option value="left">Left hand holds the gapit</option>
+        </select>
+      </label>
+      <label>Facing
+        <select id="opt-facing">
+          <option value="target">Face each other</option>
+          <option value="walk">Face the way they walk</option>
+          <option value="manual">Manual (F / G to turn)</option>
+        </select>
+      </label>
+      <label class="row"><input type="checkbox" id="opt-camera" checked /> Show camera preview</label>
+      <button id="opt-popout" class="btn small" type="button">Open camera in new window</button>
+      <label>Puppet size
+        <input type="range" id="opt-size" min="0.36" max="0.72" step="0.01" value="0.53" />
+      </label>
+      <label>Music volume
+        <input type="range" id="opt-volume" min="0" max="1" step="0.01" value="0.6" />
+      </label>
     </aside>
 
-    <footer class="bottom-bar">
-      <div class="shortcut-pills">
-        <button id="btn-dance" class="key-pill interactive-btn">
-          <kbd>D</kbd> Joget / Kiprahan
-        </button>
-        <button id="btn-flip" class="key-pill interactive-btn">
-          <kbd>F</kbd> Balik Arah (Flip)
-        </button>
-        <div class="key-pill"><kbd>C</kbd> / <kbd>Space</kbd> Ketukan Cempala</div>
-        <div class="key-pill"><kbd>V</kbd> Toggle Kamera</div>
-        <div class="key-pill"><kbd>M</kbd> Toggle Gamelan</div>
-        <div class="key-pill"><kbd>P</kbd> Demo Mode</div>
-        <div class="key-pill"><kbd>H</kbd> Sembunyikan UI</div>
-      </div>
-    </footer>
-  </div>
+    <div id="preview-box" hidden>
+      <canvas id="preview" width="320" height="180"></canvas>
+      <button id="preview-popout" class="popout-btn" type="button" aria-label="Open camera in a new window" title="Open in a new window (P)">
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M14 3h7v7h-2V6.4l-8.3 8.3-1.4-1.4L17.6 5H14V3ZM5 5h6v2H5v12h12v-6h2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/></svg>
+      </button>
+    </div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="error" class="panel error" hidden></div>
 
-  <!-- Script Modules -->
-  <script src="js/audio.js"></script>
-  <script src="js/rig.js"></script>     <!-- File rig gambar yang baru dibuat -->
-  <script src="js/kelir.js"></script>
-  <script src="js/tracker.js"></script>
-  <script src="js/app.js"></script>
-</body>
+    <script type="module" src="js/main.js"></script>
+  </body>
 </html>

@@ -215,3 +215,73 @@ class GamelanAudioEngine {
 }
 
 window.GamelanAudio = new GamelanAudioEngine();
+
+export class BackgroundMusic {
+  constructor(src) {
+    this.el = new Audio(src);
+    this.el.loop = true;
+    this.el.preload = 'auto';
+    this.el.volume = 0.6;
+    this.muted = false;
+    this.started = false;
+    this.volume = this.el.volume;
+  }
+
+  async start() {
+    this.started = true;
+    try {
+      await this.el.play();
+    } catch (err) {
+      console.warn('Background music could not start; continuing without audio file.', err);
+      window.GamelanAudio?.startBGM?.();
+    }
+  }
+
+  setMuted(muted) {
+    this.muted = muted;
+    this.el.muted = muted;
+    if (window.GamelanAudio) window.GamelanAudio.isMuted = muted;
+    if (muted) window.GamelanAudio?.stopBGM?.();
+    else if (this.started && this.el.paused) window.GamelanAudio?.startBGM?.();
+  }
+
+  setVolume(volume) {
+    this.volume = volume;
+    this.el.volume = volume;
+  }
+}
+
+export class BeatClock {
+  constructor(audioEl) {
+    this.audioEl = audioEl;
+    this.period = 60 / 110;
+    this.pos = 0;
+    this.beats = null;
+  }
+
+  async load(src) {
+    try {
+      const res = await fetch(src);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      this.beats = await res.json();
+    } catch (err) {
+      console.warn('Beat map unavailable; using steady fallback tempo.', err);
+      this.beats = null;
+    }
+  }
+
+  tick(dt) {
+    if (this.beats?.length > 1 && this.audioEl?.currentTime) {
+      const t = this.audioEl.currentTime;
+      let i = 0;
+      while (i < this.beats.length - 1 && this.beats[i + 1] <= t) i++;
+      const next = this.beats[Math.min(i + 1, this.beats.length - 1)];
+      const cur = this.beats[i];
+      this.period = Math.max(0.2, next - cur || this.period);
+      this.pos = i + (t - cur) / this.period;
+    } else {
+      this.pos += dt / this.period;
+    }
+    return { db: dt / this.period, pos: this.pos, period: this.period };
+  }
+}
