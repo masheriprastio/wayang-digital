@@ -3,12 +3,16 @@ class SpriteWayangRig {
     this.images = {};
     this.loaded = false;
 
-    // Titik pivot engsel (anchor joints)
+    // Koordinat titik engsel presisi sesuai resolusi asli gambar PNG (1400px)
     this.joints = {
-      anchor: { x: 345, y: 760 },
-      shoulderL: { x: 247.5, y: 432.5 },
-      elbowL: { x: 50, y: 180 },
-      wristL: { x: 40, y: 160 }
+      anchor: { x: 345, y: 760 },        // Poros tengah badan wayang
+      shoulderL: { x: 247.5, y: 432.5 }, // Bahu kiri (titik engsel asli)
+      shoulderR: { x: 442.5, y: 432.5 }, // Bahu kanan
+      pivotUpperArm: { x: 35, y: 35 },   // Lubang engsel atas pada upper-arm.png
+      pivotForeArm: { x: 28, y: 28 },    // Lubang engsel siku pada forearm.png
+      pivotHand: { x: 26, y: 26 },       // Lubang engsel pergelangan pada hand.png
+      upperArmLength: 250,               // Panjang lengan atas (skala asli PNG)
+      foreArmLength: 225                 // Panjang lengan depan (skala asli PNG)
     };
 
     this.loadAssets();
@@ -26,54 +30,65 @@ class SpriteWayangRig {
     const total = Object.keys(assetList).length;
 
     for (const [key, src] of Object.entries(assetList)) {
-  this.images[key] = new Image();
-  this.images[key].src = src;
-  this.images[key].onload = () => {
-    count++;
-    if (count === total) this.loaded = true;
-  };
-  this.images[key].onerror = () => {
-    console.error(`Gagal men-decode gambar: ${src}`);
-    // Tetap naikkan hitungan agar badan wayang tetap bisa digambar
-    count++;
-    if (count === total) this.loaded = true;
-  };
-}
+      this.images[key] = new Image();
+      this.images[key].src = src;
+      this.images[key].onload = () => {
+        count++;
+        if (count === total) this.loaded = true;
+      };
+      this.images[key].onerror = () => {
+        count++;
+        if (count === total) this.loaded = true;
+      };
+    }
   }
 
-  draw(ctx, x, y, scale, angles, isShadow = false) {
+  draw(ctx, x, y, scale, angles, isFlipped = false, isShadow = false) {
     if (!this.loaded) return;
 
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(scale, scale);
+    // Skala wayang (dan flip horizontal jika saling berhadapan)
+    ctx.scale(isFlipped ? -scale : scale, scale);
 
-    // Filter siluet jika dirender sebagai bayangan di kelir
+    // Filter siluet bayangan kelir
     if (isShadow) {
       ctx.filter = 'brightness(0) opacity(0.85)';
     }
 
-    // 1. Gambar Badan Utama
+    // 1. Gambar Lengan Belakang (Lengan Kanan)
+    ctx.save();
+    ctx.translate(this.joints.shoulderR.x - this.joints.anchor.x, this.joints.shoulderR.y - this.joints.anchor.y);
+    ctx.rotate(angles.upperArm * 0.8 - 0.2);
+    ctx.drawImage(this.images.upperArm, -this.joints.pivotUpperArm.x, -this.joints.pivotUpperArm.y);
+
+    ctx.translate(0, this.joints.upperArmLength);
+    ctx.rotate(angles.foreArm * 0.8 + 0.3);
+    ctx.drawImage(this.images.foreArm, -this.joints.pivotForeArm.x, -this.joints.pivotForeArm.y);
+
+    ctx.translate(0, this.joints.foreArmLength);
+    ctx.rotate(angles.hand);
+    ctx.drawImage(this.images.hand, -this.joints.pivotHand.x, -this.joints.pivotHand.y);
+    ctx.restore();
+
+    // 2. Gambar Badan Utama & Gapit Tengah
     ctx.drawImage(this.images.body, -this.joints.anchor.x, -this.joints.anchor.y);
 
-    // 2. Gambar Lengan Kiri (Hierarki Sendi: Bahu -> Siku -> Pergelangan)
+    // 3. Gambar Lengan Depan (Lengan Kiri Utama)
     ctx.save();
-    ctx.translate(this.joints.shoulderL.x - this.joints.anchor.x, 
-                  this.joints.shoulderL.y - this.joints.anchor.y);
+    ctx.translate(this.joints.shoulderL.x - this.joints.anchor.x, this.joints.shoulderL.y - this.joints.anchor.y);
     ctx.rotate(angles.upperArm);
-    ctx.drawImage(this.images.upperArm, -25, -25);
+    ctx.drawImage(this.images.upperArm, -this.joints.pivotUpperArm.x, -this.joints.pivotUpperArm.y);
 
-    // Siku
-    ctx.translate(0, 160);
+    ctx.translate(0, this.joints.upperArmLength);
     ctx.rotate(angles.foreArm);
-    ctx.drawImage(this.images.foreArm, -20, -20);
+    ctx.drawImage(this.images.foreArm, -this.joints.pivotForeArm.x, -this.joints.pivotForeArm.y);
 
-    // Tangan & Tuding
-    ctx.translate(0, 140);
+    ctx.translate(0, this.joints.foreArmLength);
     ctx.rotate(angles.hand);
-    ctx.drawImage(this.images.hand, -20, -20);
-
+    ctx.drawImage(this.images.hand, -this.joints.pivotHand.x, -this.joints.pivotHand.y);
     ctx.restore();
+
     ctx.restore();
   }
 }
