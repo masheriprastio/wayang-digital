@@ -3,16 +3,24 @@ class SpriteWayangRig {
     this.images = {};
     this.loaded = false;
 
-    // Koordinat titik engsel presisi sesuai resolusi asli gambar PNG (1400px)
+    // Titik engsel presisi sesuai anatomi potongan PNG fisik
     this.joints = {
       anchor: { x: 345, y: 760 },        // Poros tengah badan wayang
-      shoulderL: { x: 247.5, y: 432.5 }, // Bahu kiri (titik engsel asli)
+      shoulderL: { x: 247.5, y: 432.5 }, // Bahu kiri (titik ikat badan)
       shoulderR: { x: 442.5, y: 432.5 }, // Bahu kanan
-      pivotUpperArm: { x: 35, y: 35 },   // Lubang engsel atas pada upper-arm.png
-      pivotForeArm: { x: 28, y: 28 },    // Lubang engsel siku pada forearm.png
-      pivotHand: { x: 26, y: 26 },       // Lubang engsel pergelangan pada hand.png
-      upperArmLength: 250,               // Panjang lengan atas (skala asli PNG)
-      foreArmLength: 225                 // Panjang lengan depan (skala asli PNG)
+
+      // Titik lubang engsel pada masing-masing potongan gambar PNG
+      upperArm: {
+        pivot: { x: 48, y: 45 },    // Lubang engsel bahu (pangkal atas)
+        elbow: { x: 44, y: 245 }     // Lubang engsel siku (ujung bawah)
+      },
+      foreArm: {
+        pivot: { x: 42, y: 38 },    // Lubang engsel siku (pangkal atas)
+        wrist: { x: 38, y: 215 }     // Lubang engsel pergelangan tangan (ujung bawah)
+      },
+      hand: {
+        pivot: { x: 35, y: 32 }     // Lubang engsel pergelangan pada tangan & tuding
+      }
     };
 
     this.loadAssets();
@@ -43,51 +51,55 @@ class SpriteWayangRig {
     }
   }
 
+  // Fungsi menggambar satu rantai lengan (Bahu -> Siku -> Pergelangan/Tuding)
+  drawArmChain(ctx, shoulderJoint, angles) {
+    ctx.save();
+    // 1. Pindah ke titik lubang bahu pada badan
+    ctx.translate(shoulderJoint.x - this.joints.anchor.x, shoulderJoint.y - this.joints.anchor.y);
+    ctx.rotate(angles.upperArm);
+    ctx.drawImage(this.images.upperArm, -this.joints.upperArm.pivot.x, -this.joints.upperArm.pivot.y);
+
+    // 2. Pindah ke titik lubang siku tepat di ujung lengan atas
+    const elbowOffsetX = this.joints.upperArm.elbow.x - this.joints.upperArm.pivot.x;
+    const elbowOffsetY = this.joints.upperArm.elbow.y - this.joints.upperArm.pivot.y;
+    ctx.translate(elbowOffsetX, elbowOffsetY);
+    ctx.rotate(angles.foreArm);
+    ctx.drawImage(this.images.foreArm, -this.joints.foreArm.pivot.x, -this.joints.foreArm.pivot.y);
+
+    // 3. Pindah ke titik lubang pergelangan tepat di ujung lengan depan
+    const wristOffsetX = this.joints.foreArm.wrist.x - this.joints.foreArm.pivot.x;
+    const wristOffsetY = this.joints.foreArm.wrist.y - this.joints.foreArm.pivot.y;
+    ctx.translate(wristOffsetX, wristOffsetY);
+    ctx.rotate(angles.hand);
+    ctx.drawImage(this.images.hand, -this.joints.hand.pivot.x, -this.joints.hand.pivot.y);
+
+    ctx.restore();
+  }
+
   draw(ctx, x, y, scale, angles, isFlipped = false, isShadow = false) {
     if (!this.loaded) return;
 
     ctx.save();
     ctx.translate(x, y);
-    // Skala wayang (dan flip horizontal jika saling berhadapan)
     ctx.scale(isFlipped ? -scale : scale, scale);
 
-    // Filter siluet bayangan kelir
     if (isShadow) {
       ctx.filter = 'brightness(0) opacity(0.85)';
     }
 
-    // 1. Gambar Lengan Belakang (Lengan Kanan)
-    ctx.save();
-    ctx.translate(this.joints.shoulderR.x - this.joints.anchor.x, this.joints.shoulderR.y - this.joints.anchor.y);
-    ctx.rotate(angles.upperArm * 0.8 - 0.2);
-    ctx.drawImage(this.images.upperArm, -this.joints.pivotUpperArm.x, -this.joints.pivotUpperArm.y);
+    // A. Gambar Lengan Belakang (Sisi kanan wayang)
+    const backArmAngles = {
+      upperArm: angles.upperArm * 0.7 - 0.25,
+      foreArm: angles.foreArm * 0.8 + 0.35,
+      hand: angles.hand * 0.8
+    };
+    this.drawArmChain(ctx, this.joints.shoulderR, backArmAngles);
 
-    ctx.translate(0, this.joints.upperArmLength);
-    ctx.rotate(angles.foreArm * 0.8 + 0.3);
-    ctx.drawImage(this.images.foreArm, -this.joints.pivotForeArm.x, -this.joints.pivotForeArm.y);
-
-    ctx.translate(0, this.joints.foreArmLength);
-    ctx.rotate(angles.hand);
-    ctx.drawImage(this.images.hand, -this.joints.pivotHand.x, -this.joints.pivotHand.y);
-    ctx.restore();
-
-    // 2. Gambar Badan Utama & Gapit Tengah
+    // B. Gambar Badan Utama
     ctx.drawImage(this.images.body, -this.joints.anchor.x, -this.joints.anchor.y);
 
-    // 3. Gambar Lengan Depan (Lengan Kiri Utama)
-    ctx.save();
-    ctx.translate(this.joints.shoulderL.x - this.joints.anchor.x, this.joints.shoulderL.y - this.joints.anchor.y);
-    ctx.rotate(angles.upperArm);
-    ctx.drawImage(this.images.upperArm, -this.joints.pivotUpperArm.x, -this.joints.pivotUpperArm.y);
-
-    ctx.translate(0, this.joints.upperArmLength);
-    ctx.rotate(angles.foreArm);
-    ctx.drawImage(this.images.foreArm, -this.joints.pivotForeArm.x, -this.joints.pivotForeArm.y);
-
-    ctx.translate(0, this.joints.foreArmLength);
-    ctx.rotate(angles.hand);
-    ctx.drawImage(this.images.hand, -this.joints.pivotHand.x, -this.joints.pivotHand.y);
-    ctx.restore();
+    // C. Gambar Lengan Depan (Sisi kiri wayang - Lengan Utama)
+    this.drawArmChain(ctx, this.joints.shoulderL, angles);
 
     ctx.restore();
   }
