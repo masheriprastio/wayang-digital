@@ -26,13 +26,19 @@ class SpriteWayangRig {
     const total = Object.keys(assetList).length;
 
     for (const [key, src] of Object.entries(assetList)) {
-      this.images[key] = new Image();
-      this.images[key].src = src;
-      this.images[key].onload = () => {
-        count++;
-        if (count === total) this.loaded = true;
-      };
-    }
+  this.images[key] = new Image();
+  this.images[key].src = src;
+  this.images[key].onload = () => {
+    count++;
+    if (count === total) this.loaded = true;
+  };
+  this.images[key].onerror = () => {
+    console.error(`Gagal men-decode gambar: ${src}`);
+    // Tetap naikkan hitungan agar badan wayang tetap bisa digambar
+    count++;
+    if (count === total) this.loaded = true;
+  };
+}
   }
 
   draw(ctx, x, y, scale, angles, isShadow = false) {
